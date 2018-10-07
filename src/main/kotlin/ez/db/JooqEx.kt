@@ -1,7 +1,6 @@
 package ez.db
 
 import org.jooq.*
-import org.jooq.DAO
 import org.jooq.impl.DSL
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -19,9 +18,9 @@ fun <RECORD : UpdatableRecord<RECORD>, POJO : Any, KEY> DAO<RECORD, POJO, KEY>.g
     return getOrNull(id) ?: throw RecordNotFoundException(this, id)
 }
 
-fun <RECORD : UpdatableRecord<RECORD>, POJO: Any, KEY> DAO<RECORD, POJO, KEY>.dsl(): DSLContext = DSL.using(configuration())
+fun <RECORD : UpdatableRecord<RECORD>, POJO : Any, KEY> DAO<RECORD, POJO, KEY>.dsl(): DSLContext = DSL.using(configuration())
 
-fun <RECORD : UpdatableRecord<RECORD>, POJO: Any, KEY> DAO<RECORD, POJO, KEY>.page(
+fun <RECORD : UpdatableRecord<RECORD>, POJO : Any, KEY> DAO<RECORD, POJO, KEY>.page(
     pageNo: Int,
     pageSize: Int,
     queryModifier: SelectWhereStep<RECORD>.(Table<RECORD>) -> SelectLimitStep<RECORD> = { this }
@@ -34,9 +33,12 @@ fun <RECORD : UpdatableRecord<RECORD>, POJO: Any, KEY> DAO<RECORD, POJO, KEY>.pa
     return PageImpl(list, request, count.toLong())
 }
 
-fun <RECORD: Record>SelectLimitStep<RECORD>.page(context: DSLContext, pageNo: Int, pageSize: Int): Page<RECORD> {
-    val count = context.fetchCount(this)
-    val list: List<RECORD> = offset(pageNo * pageSize).limit(pageSize).fetch()
+fun <RECORD : Record> DSLContext.fetchPage(query: SelectLimitStep<RECORD>, pageNo: Int, pageSize: Int): Page<RECORD> {
+    val count = fetchCount(query)
+    val list = fetch(query.offset(pageNo * pageSize).limit(pageSize))
     val request = PageRequest.of(pageNo, pageSize)
     return PageImpl(list, request, count.toLong())
 }
+
+fun <RECORD : Record> SelectLimitStep<RECORD>.page(context: DSLContext, pageNo: Int, pageSize: Int): Page<RECORD> =
+    context.fetchPage(this, pageNo, pageSize)
