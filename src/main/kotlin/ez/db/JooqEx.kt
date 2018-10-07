@@ -33,12 +33,16 @@ fun <RECORD : UpdatableRecord<RECORD>, POJO : Any, KEY> DAO<RECORD, POJO, KEY>.p
     return PageImpl(list, request, count.toLong())
 }
 
-fun <RECORD : Record> DSLContext.fetchPage(query: SelectLimitStep<RECORD>, pageNo: Int, pageSize: Int): Page<RECORD> {
+fun <RECORD : Record, POJO : Any> DSLContext.fetchPage(query: SelectLimitStep<RECORD>, pageNo: Int, pageSize: Int, recordMapper: RecordMapper<RECORD, POJO>): Page<POJO> {
     val count = fetchCount(query)
-    val list = fetch(query.offset(pageNo * pageSize).limit(pageSize))
+    val list = fetch(query.offset(pageNo * pageSize).limit(pageSize)).map(recordMapper)
     val request = PageRequest.of(pageNo, pageSize)
     return PageImpl(list, request, count.toLong())
 }
 
-fun <RECORD : Record> SelectLimitStep<RECORD>.page(context: DSLContext, pageNo: Int, pageSize: Int): Page<RECORD> =
-    context.fetchPage(this, pageNo, pageSize)
+fun <RECORD : Record, POJO: Any> SelectLimitStep<RECORD>.page(context: DSLContext, pageNo: Int, pageSize: Int, recordMapper: RecordMapper<RECORD, POJO>): Page<POJO> =
+    context.fetchPage(this, pageNo, pageSize, recordMapper)
+
+fun <RECORD : Record, POJO : Any> Table<RECORD>.mapper(pojoClass: Class<POJO>, configuration: Configuration): RecordMapper<RECORD, POJO> {
+    return configuration.recordMapperProvider().provide(recordType(), pojoClass)
+}
