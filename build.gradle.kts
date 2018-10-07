@@ -9,7 +9,7 @@ plugins {
     id("io.spring.dependency-management") version v.springDepManage
 }
 
-group = "ez"
+group = "com.github.rainmanhhh"
 version = "0.0.5"
 
 repositories {
