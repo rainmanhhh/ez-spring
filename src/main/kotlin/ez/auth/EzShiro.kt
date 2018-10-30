@@ -35,10 +35,7 @@ open class EzShiro(
      */
     fun me(): String = getSubject().principal
 
-    fun login(token: AuthenticationToken) = getSubject().let {
-        it.login(token)
-        it.principal
-    }
+    fun login(token: AuthenticationToken) = getSubject().login(token)
 
     fun login(username: String, password: String, salt: String, rememberMe: Boolean = false) =
         login(UsernamePasswordToken(username, addSaltToPassword(password, salt), rememberMe))
