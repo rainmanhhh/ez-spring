@@ -10,6 +10,10 @@ class EzSubject(
     val principalOrNull: String? = subject.principal as String?
 
     override fun getPrincipal(): String = principalOrNull ?: throw PrincipalIsNull
+
+    fun hasAnyRole(roles: Iterable<String>) = roles.any(::hasRole)
+
+    fun hasAnyRole(vararg roles: String) = hasAnyRole(roles.toList())
 }
 
 object PrincipalIsNull : AuthenticationException("principal is null")
