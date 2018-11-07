@@ -14,7 +14,6 @@ class EzSubject(
     fun hasAnyRole(roles: Iterable<String>) = roles.any(::hasRole)
 
     fun hasAnyRole(vararg roles: String) = hasAnyRole(roles.toList())
+
+    object PrincipalIsNull : AuthenticationException("principal is null")
 }
-
-object PrincipalIsNull : AuthenticationException("principal is null")
-
