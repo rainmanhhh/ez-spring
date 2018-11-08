@@ -7,8 +7,12 @@ import org.jooq.SelectConditionStep
 
 fun <RECORD : Record> SelectConditionStep<RECORD>.ezAnd(
     vararg conditions: Condition?
-): SelectConditionStep<RECORD> = and(EzDsl.and(*conditions))
+): SelectConditionStep<RECORD> = EzDsl.and(*conditions).let {
+    if (it == null) this else and(it)
+}
 
 fun <RECORD : Record> SelectConditionStep<RECORD>.ezOr(
     vararg conditions: Condition?
-): SelectConditionStep<RECORD> = or(EzDsl.or(*conditions))
+): SelectConditionStep<RECORD> = EzDsl.or(*conditions).let {
+    if (it == null) this else or(it)
+}
