@@ -1,19 +1,18 @@
 package ez.auth
 
-import org.apache.shiro.authc.AuthenticationException
 import org.apache.shiro.subject.Subject
 
 class EzSubject(
     private val subject: Subject
 ) : Subject by subject {
-    @Suppress("UNCHECKED_CAST")
-    val principalOrNull: String? = subject.principal as String?
+    override fun getPrincipal(): Any? = subject.principal
 
-    override fun getPrincipal(): String = principalOrNull ?: throw PrincipalIsNull
+    /**
+     * principal string. if principal is not string. call toString() to convert it
+     */
+    val pString: String? = subject.principal as? String ?: subject.principal?.toString()
 
     fun hasAnyRole(roles: Iterable<String>) = roles.any(::hasRole)
 
     fun hasAnyRole(vararg roles: String) = hasAnyRole(roles.toList())
 }
-
-object PrincipalIsNull : AuthenticationException("principal is null")
