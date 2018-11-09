@@ -1,21 +1,17 @@
 package ez.db.condition
 
 import ez.db.dsl.EzDsl
-import org.jooq.Condition
 import org.jooq.Field
-import org.jooq.impl.DSL
 
-fun <E : Any, V> ezIf(expr: E?, elseValue: V, provider: (E) -> V): V =
-    if (EzDsl.checkAsJs(expr)) provider(expr!!) else elseValue
+open class EzField<E : Any>(protected val field: Field<E>) {
+    fun eq(expr: E?) = EzDsl.condition(expr, field::eq)
+}
 
-fun <E : Any> ezCond(expr: E?, provider: (E) -> Condition) = ezIf(expr, null, provider)
+class EzStringField(field: Field<String>) : EzField<String>(field) {
+    fun contains(expr: String?) = EzDsl.condition(expr) { field.like("%$it%") }
+    fun startWith(expr: String?) = EzDsl.condition(expr) { field.like("$it%") }
+}
 
-fun <E : Any> ezEq(expr: E?, field: Field<E>) = ezCond(expr, field::eq)
+fun <E : Any> Field<E>.ez() = EzField(this)
+fun Field<String>.ez() = EzStringField(this)
 
-fun ezContains(expr: String?, field: Field<String>) = ezCond(expr) { field.like("%$it%") }
-
-fun ezStartWith(expr: String?, field: Field<String>) = ezCond(expr) { field.like("$it%") }
-
-fun ezAnd(vararg conditions: Condition?): Condition = DSL.and(conditions.filterNotNull())
-
-fun ezOr(vararg conditions: Condition?): Condition = DSL.or(conditions.filterNotNull())
