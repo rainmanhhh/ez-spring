@@ -2,8 +2,11 @@ package ez.auth
 
 import ez.auth.EzShiro.Encoders
 import org.apache.shiro.SecurityUtils
+import org.apache.shiro.authc.SimpleAuthenticationInfo
 import org.apache.shiro.authc.UsernamePasswordToken
-import org.apache.shiro.crypto.hash.SimpleHash
+import org.apache.shiro.authc.credential.CredentialsMatcher
+import org.apache.shiro.cache.CacheManager
+import org.apache.shiro.realm.AuthorizingRealm
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean
 import org.apache.shiro.util.ByteSource
 import org.apache.shiro.web.filter.mgt.DefaultFilterChainManager
@@ -12,27 +15,29 @@ import org.apache.shiro.web.servlet.AbstractShiroFilter
 
 typealias Encoder = ((ByteSource) -> String)
 
-open class EzShiro @JvmOverloads constructor(
+abstract class EzShiro @JvmOverloads constructor(
     /**
-     * default algorithm is "SHA-256"
+     * if it's null, use [javaClass].canonicalName
      */
-    private val hashAlgorithm: String = "SHA-256",
+    name: String? = null,
     /**
-     * less than 1 means don't hash password. default value is 1
+     * null means don't encode password. default value is [Encoders.HEX]. suggest to encode salt with it too.
      */
-    private val hashTimes: Int = 1,
-    /**
-     * null means don't encode password. default value is [Encoders.HEX]
-     */
-    private val passwordEncoder: Encoder? = Encoders.HEX,
+    val passwordEncoder: Encoder? = Encoders.HEX,
     /**
      * null means don't encode username. default value is null
      */
-    private val usernameEncoder: Encoder? = null
-) {
+    val usernameEncoder: Encoder? = null,
+    cacheManager: CacheManager? = null,
+    credentialsMatcher: CredentialsMatcher? = null
+): AuthorizingRealm(cacheManager, credentialsMatcher) {
     object Encoders {
         val HEX = ByteSource::toHex
         val BASE64 = ByteSource::toBase64
+    }
+
+    init {
+        super.setName(name ?: this.javaClass.canonicalName)
     }
 
     /**
@@ -42,19 +47,16 @@ open class EzShiro @JvmOverloads constructor(
     fun me() = EzSubject(SecurityUtils.getSubject())
 
     private fun Any.toByteSource(): ByteSource = ByteSource.Util.bytes(this)
-    private fun ByteSource.tryHash(salt: Any? = null, times: Int = 1): ByteSource =
-        if (times < 1) this else SimpleHash(hashAlgorithm, this, salt, times)
 
-    fun token(username: Any, password: Any, salt: Any?, rememberMe: Boolean = false, host: String? = null) =
-        UsernamePasswordToken(
-            usernameEncoder?.invoke(username.toByteSource()) ?: username.toString(),
-            passwordEncoder?.invoke(password.toByteSource().tryHash(salt, hashTimes)) ?: password.toString(),
-            rememberMe,
-            host
-        )
+    fun createToken(username: Any, password: Any, rememberMe: Boolean = false, host: String? = null) =
+        UsernamePasswordToken(encodeUsername(username), encodePassword(password), rememberMe, host)
 
-    fun login(username: Any, password: Any, salt: Any?, rememberMe: Boolean = false, host: String? = null) =
-        me().login(token(username, password, salt, rememberMe, host))
+    fun encodeUsername(username: Any) = usernameEncoder?.invoke(username.toByteSource()) ?: username.toString()
+
+    fun encodePassword(password: Any) = passwordEncoder?.invoke(password.toByteSource()) ?: password.toString()
+
+    fun login(username: Any, password: Any, rememberMe: Boolean = false, host: String? = null) =
+        me().login(createToken(username, password, rememberMe, host))
 
     private fun ShiroFilterFactoryBean.chainManager(): DefaultFilterChainManager {
         val shiroFilter = `object` as AbstractShiroFilter
