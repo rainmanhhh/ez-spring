@@ -27,7 +27,7 @@ apply plugin: 'idea'
 //apply plugin: 'io.spring.dependency-management'
 
 group = 'com.github.rainmanhhh'
-version = '0.0.9'
+version = '0.0.10'
 
 compileKotlin {
     kotlinOptions {
