@@ -1,21 +1,21 @@
 buildscript {
     ext {
-        verKotlin = '1.3.0'
-        verSpringboot = "2.0.5.RELEASE"
-        verSpringData = "2.0.10.RELEASE"
-        verSpringDepManage = "1.0.6.RELEASE"
-        verShiro = "1.4.0"
-        verJooq = "3.11.5"
-        verSwaggerStarter = "1.8.0.RELEASE"
+        verKotlin = '1.3.10'
+        verSpringData = '2.0.10.RELEASE'
+        verSpringDepManage = '1.0.6.RELEASE'
+        verShiro = '1.4.0'
+        verJooq = '3.11.5'
+        verSwaggerStarter = '1.8.0.RELEASE'
+        verDokka = '0.9.17'
     }
     repositories {
         mavenLocal()
         jcenter()
     }
     dependencies {
-//        classpath("org.springframework.boot:spring-boot-gradle-plugin:${verSpringboot}")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${verKotlin}")
-        classpath("org.jetbrains.kotlin:kotlin-allopen:${verKotlin}")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$verKotlin")
+        classpath("org.jetbrains.kotlin:kotlin-allopen:$verKotlin")
+        classpath "org.jetbrains.dokka:dokka-gradle-plugin:$verDokka"
     }
 }
 
@@ -23,11 +23,10 @@ apply plugin: 'kotlin'
 apply plugin: 'kotlin-spring'
 apply plugin: 'maven'
 apply plugin: 'idea'
-//apply plugin: 'org.springframework.boot'
-//apply plugin: 'io.spring.dependency-management'
+apply plugin: 'org.jetbrains.dokka'
 
 group = 'com.github.rainmanhhh'
-version = '0.0.10'
+version = '0.0.11'
 
 compileKotlin {
     kotlinOptions {
@@ -60,14 +59,38 @@ task sourceJar(type: Jar) {
     classifier = 'sources'
     from(sourceSets.main.allSource)
 }
+
+//task generateSourcesJar(type: Jar) {
+//    group = 'jar'
+//    from sourceSets.main.java.srcDirs
+//    classifier = 'sources'
+//}
+
+task dokkaJavadoc(type: org.jetbrains.dokka.gradle.DokkaTask) {
+    outputFormat = "javadoc"
+    outputDirectory = javadoc.destinationDir
+}
+
+task generateJavadoc(type: Jar, dependsOn: dokkaJavadoc) {
+    group = 'jar'
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives jar
+    archives sourceJar
+    archives generateJavadoc
+}
+
 //
 //task javadocJar(type: Jar) {
 //    classifier = 'javadoc'
 //    from(javadoc)
 //}
 
-artifacts {
-    archives jar
-    archives sourceJar
-//    archives javadocJar
-}
+//artifacts {
+//    archives jar
+//    archives sourceJar
+////    archives javadocJar
+//}

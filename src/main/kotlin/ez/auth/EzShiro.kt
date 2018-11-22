@@ -2,9 +2,10 @@ package ez.auth
 
 import ez.auth.EzShiro.Encoders
 import org.apache.shiro.SecurityUtils
-import org.apache.shiro.authc.SimpleAuthenticationInfo
 import org.apache.shiro.authc.UsernamePasswordToken
 import org.apache.shiro.authc.credential.CredentialsMatcher
+import org.apache.shiro.authz.AuthorizationInfo
+import org.apache.shiro.authz.Permission
 import org.apache.shiro.cache.CacheManager
 import org.apache.shiro.realm.AuthorizingRealm
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean
@@ -21,6 +22,10 @@ abstract class EzShiro @JvmOverloads constructor(
      */
     name: String? = null,
     /**
+     * authc/authz info cache manager, default value is null
+     */
+    cacheManager: CacheManager? = null,
+    /**
      * null means don't encode password. default value is [Encoders.HEX]. suggest to encode salt with it too.
      */
     val passwordEncoder: Encoder? = Encoders.HEX,
@@ -28,9 +33,8 @@ abstract class EzShiro @JvmOverloads constructor(
      * null means don't encode username. default value is null
      */
     val usernameEncoder: Encoder? = null,
-    cacheManager: CacheManager? = null,
     credentialsMatcher: CredentialsMatcher? = null
-): AuthorizingRealm(cacheManager, credentialsMatcher) {
+) : AuthorizingRealm(cacheManager, credentialsMatcher) {
     object Encoders {
         val HEX = ByteSource::toHex
         val BASE64 = ByteSource::toBase64
@@ -41,28 +45,66 @@ abstract class EzShiro @JvmOverloads constructor(
     }
 
     /**
-     * 返回封装后的shiro授权对象
+     * wrap an [EzSubject]
      * @return EzSubject
      */
     fun me() = EzSubject(SecurityUtils.getSubject())
 
     private fun Any.toByteSource(): ByteSource = ByteSource.Util.bytes(this)
 
+    /**
+     * create a [UsernamePasswordToken]
+     * @param username Any
+     * @param password Any
+     * @param rememberMe Boolean
+     * @param host String?
+     * @return UsernamePasswordToken
+     */
     fun createToken(username: Any, password: Any, rememberMe: Boolean = false, host: String? = null) =
         UsernamePasswordToken(encodeUsername(username), encodePassword(password), rememberMe, host)
 
+    /**
+     * if [usernameEncoder] is null, just call [username].toString();
+     * else use it to encode username bytes
+     * @param username Any
+     * @return String
+     */
     fun encodeUsername(username: Any) = usernameEncoder?.invoke(username.toByteSource()) ?: username.toString()
 
+    /**
+     * if [passwordEncoder] is null, just call [password].toString();
+     * else use it to encode password bytes
+     * @param password Any
+     * @return String
+     */
     fun encodePassword(password: Any) = passwordEncoder?.invoke(password.toByteSource()) ?: password.toString()
 
+    /**
+     * login with username & password
+     * @param username Any
+     * @param password Any
+     * @param rememberMe Boolean
+     * @param host String?
+     */
     fun login(username: Any, password: Any, rememberMe: Boolean = false, host: String? = null) =
         me().login(createToken(username, password, rememberMe, host))
 
-    private fun ShiroFilterFactoryBean.chainManager(): DefaultFilterChainManager {
-        val shiroFilter = `object` as AbstractShiroFilter
-        val filterChainResolver = shiroFilter.filterChainResolver as PathMatchingFilterChainResolver
-        return filterChainResolver.filterChainManager as DefaultFilterChainManager
-    }
+    /**
+     * get current user authz info
+     * @return AuthorizationInfo?
+     */
+    fun getAuthzInfo(): AuthorizationInfo? = getAuthorizationInfo(me().principals)
+
+    /**
+     * clear cached authz info of current user
+     */
+    fun flushAuthz() = clearCachedAuthorizationInfo(me().principals)
+
+    /**
+     * get final permissions(user permissions + role permissions)
+     * @return Collection<Permission>
+     */
+    fun getPerms(): Collection<Permission> = getPermissions(getAuthzInfo())
 
     /**
      * after [ShiroFilterFactoryBean.filterChainDefinitionMap] changed, call this method to recreate shiro filter chain
@@ -75,5 +117,11 @@ abstract class EzShiro @JvmOverloads constructor(
         filterChainDefinitionMap.forEach { k, v ->
             chainManager.createChain(k, v.trim().replace(" ", ""))
         }
+    }
+
+    private fun ShiroFilterFactoryBean.chainManager(): DefaultFilterChainManager {
+        val shiroFilter = `object` as AbstractShiroFilter
+        val filterChainResolver = shiroFilter.filterChainResolver as PathMatchingFilterChainResolver
+        return filterChainResolver.filterChainManager as DefaultFilterChainManager
     }
 }
