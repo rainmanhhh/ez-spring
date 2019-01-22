@@ -2,9 +2,19 @@ package ez.auth
 
 import org.apache.shiro.subject.Subject
 
+/**
+ * simple wrapper of shiro [Subject]
+ * @property subject Subject
+ * @property pString String?
+ * @constructor
+ */
 class EzSubject(
     private val subject: Subject
 ) : Subject by subject {
+    /**
+     *
+     * @return Any?
+     */
     override fun getPrincipal(): Any? = subject.principal
 
     /**
@@ -12,7 +22,17 @@ class EzSubject(
      */
     val pString: String? = subject.principal as? String ?: subject.principal?.toString()
 
-    fun hasAnyRole(roles: Iterable<String>) = roles.any(::hasRole)
+    /**
+     *
+     * @param roles Iterable<String>
+     * @return Boolean
+     */
+    fun hasAnyRole(roles: Iterable<String>): Boolean = roles.any(::hasRole)
 
-    fun hasAnyRole(vararg roles: String) = hasAnyRole(roles.toList())
+    /**
+     *
+     * @param roles Array<out String>
+     * @return Boolean
+     */
+    fun hasAnyRole(vararg roles: String): Boolean = hasAnyRole(roles.toList())
 }

@@ -1,11 +1,13 @@
 package ez.web
 
+import ez.web.PageInfo.Companion.DEFAULT_PAGE_NO
+import ez.web.PageInfo.Companion.DEFAULT_PAGE_SIZE
 import io.swagger.annotations.ApiParam
 
 /**
- * 分页查询参数
- * @property size Int 单页记录数
- * @property no Int 页码，从0开始
+ * pagination params
+ * @property size Int page size. default value is [DEFAULT_PAGE_SIZE]
+ * @property no Int page number. start from 0. default value is [DEFAULT_PAGE_NO]
  * @constructor
  */
 class PageInfo @JvmOverloads constructor(
@@ -14,8 +16,17 @@ class PageInfo @JvmOverloads constructor(
     @field:ApiParam("页码，从0开始", defaultValue = DEFAULT_PAGE_NO.toString())
     var no: Int = DEFAULT_PAGE_NO
 ) {
+    /**
+     *
+     */
     companion object {
-        const val DEFAULT_PAGE_SIZE = 20
-        const val DEFAULT_PAGE_NO = 0
+        /**
+         * default page size
+         */
+        const val DEFAULT_PAGE_SIZE: Int = 20
+        /**
+         * default page number. start from 0
+         */
+        const val DEFAULT_PAGE_NO: Int = 0
     }
 }

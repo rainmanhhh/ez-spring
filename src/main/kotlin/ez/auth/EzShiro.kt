@@ -16,6 +16,13 @@ import org.apache.shiro.web.servlet.AbstractShiroFilter
 
 typealias Encoder = ((ByteSource) -> String)
 
+/**
+ * wrapper of shiro [AuthorizingRealm]
+ * @property passwordEncoder Function1<ByteSource, String>?
+ * @property usernameEncoder Function1<ByteSource, String>?
+ * @constructor
+ */
+@Suppress("unused")
 abstract class EzShiro @JvmOverloads constructor(
     /**
      * if it's null, use [javaClass].canonicalName
@@ -35,9 +42,18 @@ abstract class EzShiro @JvmOverloads constructor(
     val usernameEncoder: Encoder? = null,
     credentialsMatcher: CredentialsMatcher? = null
 ) : AuthorizingRealm(cacheManager, credentialsMatcher) {
+    /**
+     * predefined encoders
+     */
     object Encoders {
-        val HEX = ByteSource::toHex
-        val BASE64 = ByteSource::toBase64
+        /**
+         *
+         */
+        val HEX: (ByteSource) -> String = ByteSource::toHex
+        /**
+         *
+         */
+        val BASE64: (ByteSource) -> String = ByteSource::toBase64
     }
 
     init {
@@ -48,7 +64,7 @@ abstract class EzShiro @JvmOverloads constructor(
      * wrap an [EzSubject]
      * @return EzSubject
      */
-    fun me() = EzSubject(SecurityUtils.getSubject())
+    fun me(): EzSubject = EzSubject(SecurityUtils.getSubject())
 
     private fun Any.toByteSource(): ByteSource = ByteSource.Util.bytes(this)
 
@@ -60,7 +76,7 @@ abstract class EzShiro @JvmOverloads constructor(
      * @param host String?
      * @return UsernamePasswordToken
      */
-    fun createToken(username: Any, password: Any, rememberMe: Boolean = false, host: String? = null) =
+    fun createToken(username: Any, password: Any, rememberMe: Boolean = false, host: String? = null): UsernamePasswordToken =
         UsernamePasswordToken(encodeUsername(username), encodePassword(password), rememberMe, host)
 
     /**
@@ -69,7 +85,7 @@ abstract class EzShiro @JvmOverloads constructor(
      * @param username Any
      * @return String
      */
-    fun encodeUsername(username: Any) = usernameEncoder?.invoke(username.toByteSource()) ?: username.toString()
+    fun encodeUsername(username: Any): String = usernameEncoder?.invoke(username.toByteSource()) ?: username.toString()
 
     /**
      * if [passwordEncoder] is null, just call [password].toString();
@@ -77,7 +93,7 @@ abstract class EzShiro @JvmOverloads constructor(
      * @param password Any
      * @return String
      */
-    fun encodePassword(password: Any) = passwordEncoder?.invoke(password.toByteSource()) ?: password.toString()
+    fun encodePassword(password: Any): String = passwordEncoder?.invoke(password.toByteSource()) ?: password.toString()
 
     /**
      * login with username & password
@@ -86,7 +102,7 @@ abstract class EzShiro @JvmOverloads constructor(
      * @param rememberMe Boolean
      * @param host String?
      */
-    fun login(username: Any, password: Any, rememberMe: Boolean = false, host: String? = null) =
+    fun login(username: Any, password: Any, rememberMe: Boolean = false, host: String? = null): Unit =
         me().login(createToken(username, password, rememberMe, host))
 
     /**
@@ -98,7 +114,7 @@ abstract class EzShiro @JvmOverloads constructor(
     /**
      * clear cached authz info of current user
      */
-    fun flushAuthz() = clearCachedAuthorizationInfo(me().principals)
+    fun flushAuthz(): Unit = clearCachedAuthorizationInfo(me().principals)
 
     /**
      * get final permissions(user permissions + role permissions)
@@ -111,7 +127,7 @@ abstract class EzShiro @JvmOverloads constructor(
      * @param factoryBean ShiroFilterFactoryBean
      */
     @Synchronized
-    fun flushFilterChain(factoryBean: ShiroFilterFactoryBean) = factoryBean.run {
+    fun flushFilterChain(factoryBean: ShiroFilterFactoryBean): Unit = factoryBean.run {
         val chainManager = chainManager()
         chainManager.filterChains.clear()
         filterChainDefinitionMap.forEach { k, v ->

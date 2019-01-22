@@ -3,6 +3,9 @@ package ez.db.dsl
 import org.jooq.Condition
 import org.jooq.impl.DSL
 
+/**
+ * contains util functions for jooq [DSL]
+ */
 object EzDsl {
     /**
      *

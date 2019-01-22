@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        verKotlin = '1.3.10'
+        verKotlin = '1.3.11'
         verSpringData = '2.0.10.RELEASE'
         verSpringDepManage = '1.0.6.RELEASE'
         verShiro = '1.4.0'
@@ -19,6 +19,7 @@ buildscript {
     }
 }
 
+apply plugin: 'java'
 apply plugin: 'kotlin'
 apply plugin: 'kotlin-spring'
 apply plugin: 'maven'
@@ -26,7 +27,7 @@ apply plugin: 'idea'
 apply plugin: 'org.jetbrains.dokka'
 
 group = 'com.github.rainmanhhh'
-version = '0.0.11'
+version = '0.0.12'
 
 compileKotlin {
     kotlinOptions {
@@ -60,12 +61,6 @@ task sourceJar(type: Jar) {
     from(sourceSets.main.allSource)
 }
 
-//task generateSourcesJar(type: Jar) {
-//    group = 'jar'
-//    from sourceSets.main.java.srcDirs
-//    classifier = 'sources'
-//}
-
 task dokkaJavadoc(type: org.jetbrains.dokka.gradle.DokkaTask) {
     outputFormat = "javadoc"
     outputDirectory = javadoc.destinationDir
@@ -82,15 +77,3 @@ artifacts {
     archives sourceJar
     archives generateJavadoc
 }
-
-//
-//task javadocJar(type: Jar) {
-//    classifier = 'javadoc'
-//    from(javadoc)
-//}
-
-//artifacts {
-//    archives jar
-//    archives sourceJar
-////    archives javadocJar
-//}
