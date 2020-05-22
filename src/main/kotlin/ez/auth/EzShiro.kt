@@ -130,7 +130,7 @@ abstract class EzShiro @JvmOverloads constructor(
     fun flushFilterChain(factoryBean: ShiroFilterFactoryBean): Unit = factoryBean.run {
         val chainManager = chainManager()
         chainManager.filterChains.clear()
-        filterChainDefinitionMap.forEach { k, v ->
+        filterChainDefinitionMap.forEach { (k, v) ->
             chainManager.createChain(k, v.trim().replace(" ", ""))
         }
     }
