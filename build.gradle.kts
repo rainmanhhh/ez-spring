@@ -2,7 +2,6 @@ plugins {
   val v = object {
     val kotlin = "1.3.72"
   }
-//  id("org.springframework.boot") version "2.2.7.RELEASE"
   id("io.spring.dependency-management") version "1.0.9.RELEASE"
   id("org.jetbrains.dokka") version "0.10.1"
   kotlin("jvm") version v.kotlin
@@ -13,7 +12,7 @@ plugins {
 }
 
 group = "com.github.rainmanhhh"
-version = "0.0.14"
+version = "0.0.15"
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 configurations {
@@ -37,15 +36,14 @@ repositories {
 
 dependencyManagement {
   imports {
-    mavenBom("org.springframework.boot:spring-boot-dependencies:2.3.0.RELEASE")
+    mavenBom("org.springframework.boot:spring-boot-dependencies:2.3.1.RELEASE")
   }
 }
 
 dependencies {
   val v = object {
-    val shiro = "1.4.0"
-    val springDoc = "1.3.9"
-    val dokka = "0.10.1"
+    val shiro = "1.4.2"
+    val springDoc = "1.4.3"
   }
   api("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
   api("org.jooq:jooq")
