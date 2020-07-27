@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "com.github.rainmanhhh"
-version = "0.0.15"
+version = "0.0.16"
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 configurations {
@@ -62,8 +62,11 @@ tasks {
   }
 
   val dokka by getting(org.jetbrains.dokka.gradle.DokkaTask::class) {
-    outputFormat = "javadoc"
+//    outputFormat = "javadoc"
     outputDirectory = "$buildDir/dokka"
+    configuration {
+      jdkVersion = 14
+    }
   }
 
   val javadocJar by creating(Jar::class) {
@@ -75,8 +78,5 @@ tasks {
   artifacts {
     add("archives", sourceJar)
     add("archives", javadocJar)
-//    archives jar
-//      archives sourceJar
-//      archives generateJavadoc
   }
 }

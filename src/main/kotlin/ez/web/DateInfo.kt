@@ -1,11 +1,14 @@
 package ez.web
 
 import io.swagger.v3.oas.annotations.Parameter
+import org.springframework.format.annotation.DateTimeFormat
 import java.time.LocalDate
 
 class DateInfo(
-  @Parameter(description = "开始日期")
+  @DateTimeFormat(pattern = "yyyy-MM-dd")
+  @Parameter(description = "start date, pattern: yyyy-MM-dd")
   var start: LocalDate,
-  @Parameter(description = "结束日期")
+  @DateTimeFormat(pattern = "yyyy-MM-dd")
+  @Parameter(description = "end date, pattern: yyyy-MM-dd")
   var end: LocalDate
 )
